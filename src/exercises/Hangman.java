@@ -4,8 +4,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EmptyStackException;
 import java.util.List;
-import java.util.Random;
 import java.util.Stack;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -34,9 +35,11 @@ public class Hangman extends KeyAdapter {
 //		puzzles.push("fancypants");
 //		puzzles.push("elements");
 		List<String> words = FileHelper.loadFileContentsIntoArrayList("resource/words.txt");
+		Collections.shuffle(words);
 		for (int i = 0; i < words.size(); i++) {
 			puzzles.push(words.get(i));
 		}
+
 	}
 
 	JPanel panel = new JPanel();
@@ -58,10 +61,23 @@ public class Hangman extends KeyAdapter {
 		removeBoxes();
 		lives = 9;
 		livesLabel.setText("" + lives);
-		Random random = new Random();
-		puzzle = puzzles.get(random.nextInt(puzzles.size() - 1));
+		do {
+			try {
+				puzzle = puzzles.pop();
+				if (!puzzle.matches("[a-zA-Z]+")) {
+					throw new Exception("Word " + puzzle + " contains special characters!");
+				}
+			} catch (EmptyStackException es) {
+				JOptionPane.showMessageDialog(panel, "All puzzles solved!");
+				System.exit(0);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		} while (!puzzle.matches("[a-zA-Z]+"));
+
 		System.out.println("puzzle is now " + puzzle);
 		createBoxes();
+
 	}
 
 	public void keyTyped(KeyEvent arg0) {
